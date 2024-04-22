@@ -15,7 +15,6 @@ mdCliTestWithInput:
        environment more false
        show version
        show router interface
-       exit all
 
   output:
     result:
