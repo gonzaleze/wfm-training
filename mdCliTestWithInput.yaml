@@ -7,7 +7,7 @@ mdCliTestWithInput:
   type: direct
 
   tags:
-    - sample workflow
+    - sample workflow v2
 
   input:
     - neId: 11.11.11.11
@@ -39,7 +39,7 @@ mdCliTestWithInput:
         cmds: <% $.cliCommands.split("\n") %>
       publish:
         sessionId:  <% task().result.sessionId %>
-        cliResult : <% task().result.responses %>
+        cliResult : <% task().result.responses[2] %>
         stage: "executeCli"
       publish-on-error:
         error_stage: <% task().result %>
