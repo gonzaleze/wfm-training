@@ -2,7 +2,7 @@
 version: '2.0'
 
 run_commands_sros:
-  description: Demo 1. Running commands into SROS
+  description: Demo 1. Running commands into SROS from WFM
 
   type: direct
 
