@@ -1,0 +1,48 @@
+
+version: '2.0'
+
+mdCliTestWithInput:
+  description: this is a sample workflow
+
+  type: direct
+
+  tags:
+    - sample workflow
+
+  input:
+    - neId: 11.11.11.11
+    - cliCommands: |
+       environment more false
+       show router interface
+       exit all
+
+  output:
+    result:
+     stage: <% $.stage %>
+     cli:   <% $.cliResult %>
+
+
+  vars:
+    getTime: <% get_time() %>
+    stop: "([\\s\\S]*)(\\^*)[\r\n]*(MINOR:)([\\s\\S]*)"
+    stage: "null"
+
+  tasks:
+
+    executeCli:
+      action: nsp.mdm_cli
+      input:
+        neId: <% $.neId %>
+        stopOn: <% $.stop %>
+        idleTimeOut: 120
+        closeSession: false
+        cmds: <% $.cliCommands.split("\n") %>
+      publish:
+        sessionId:  <% task().result.sessionId %>
+        cliResult : <% task().result.responses[2] %>
+        stage: "executeCli"
+      publish-on-error:
+        error_stage: <% task().result %>
+        error_string: "Execute cli on node failed"
+        stage: "executeCli"
+  
