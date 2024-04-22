@@ -1,0 +1,47 @@
+
+version: '2.0'
+
+run_commands_sros:
+  description: Demo 1. Running commands into SROS
+
+  type: direct
+
+  tags:
+    - Example of Workflow
+
+  input:
+    - neId: 11.11.11.11
+    - cliCommands: |
+       environment more false
+       show router interface
+       exit all
+
+  output:
+    result:
+     stage: <% $.stage %>
+     cli:   <% $.cliResult %>
+
+
+  vars:
+    getTime: <% get_time() %>
+    stop: "([\\s\\S]*)(\\^*)[\r\n]*(MINOR:)([\\s\\S]*)"
+    stage: "null"
+
+  tasks:
+
+    executeCli:
+      action: nsp.mdm_cli
+      input:
+        neId: <% $.neId %>
+        stopOn: <% $.stop %>
+        idleTimeOut: 120
+        closeSession: false
+        cmds: <% $.cliCommands.split("\n") %>
+      publish:
+        sessionId:  <% task().result.sessionId %>
+        cliResult : <% task().result.responses %>
+        stage: "executeCli"
+      publish-on-error:
+        error_stage: <% task().result %>
+        error_string: "Execute cli on node failed"
+        stage: "executeCli"
