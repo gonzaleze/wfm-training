@@ -39,7 +39,7 @@ mdCliTestWithInput:
         cmds: <% $.cliCommands.split("\n") %>
       publish:
         sessionId:  <% task().result.sessionId %>
-        cliResult : <% task().result.responses[2] %>
+        cliResult : <% task().result.responses %>
         stage: "executeCli"
       publish-on-error:
         error_stage: <% task().result %>
