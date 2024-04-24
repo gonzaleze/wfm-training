@@ -1,6 +1,7 @@
 version: '2.0'
 
 workflow_demo01:
+  description: Demo 1. Creating your first Workflow
   type: direct
 
   input:
