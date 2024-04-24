@@ -1,29 +1,31 @@
 
 version: '2.0'
 
-run_commands_sros:
-  description: Demo 1. Running commands into SROS from WFM
+workflow_demo03:
+  description: Demo 3. Integration with GitHub and WFM
 
   type: direct
 
   tags:
-    - Example of Workflow
+    - demo3_v1.0
 
   input:
-    - neId: 11.11.11.11
-    - cliCommands: |
-       environment more false
-       show router interface
-       exit all
+    - neId: 44.44.44.44
 
   output:
-    result:
-     stage: <% $.stage %>
-     cli:   <% $.cliResult %>
-
-
+    result: <% $.result %>
+    
+  output-on-error:
+    error_string: <% $.error_string %>
+    error_stage: <% $.error_stage %>
+    
   vars:
-    getTime: <% get_time() %>
+    cliCommands: |
+       environment more false
+       /config private
+       /configure router bgp admin-state enable
+       commit
+       exit all
     stop: "([\\s\\S]*)(\\^*)[\r\n]*(MINOR:)([\\s\\S]*)"
     stage: "null"
 
@@ -35,13 +37,28 @@ run_commands_sros:
         neId: <% $.neId %>
         stopOn: <% $.stop %>
         idleTimeOut: 120
-        closeSession: false
+        closeSession: true
         cmds: <% $.cliCommands.split("\n") %>
       publish:
-        sessionId:  <% task().result.sessionId %>
-        cliResult : <% task().result.responses %>
+        cliOutput:  <% task().result.responses[2] %>
         stage: "executeCli"
       publish-on-error:
-        error_stage: <% task().result %>
-        error_string: "Execute cli on node failed"
-        stage: "executeCli"
+        error_string: <% task().result %>
+        error_stage: "executeCli"
+      on-success:
+        cliResult
+      on-error:
+        error_handler
+        
+    cliResult:
+      action: std.noop
+      publish:
+        result: <% $.cliOutput %>
+      on-success:
+        exit_task
+        
+    exit_task:
+      action: std.noop
+
+    error_handler:
+      action: std.fail\
