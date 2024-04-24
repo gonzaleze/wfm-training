@@ -1,8 +1,8 @@
 
 version: '2.0'
 
-workflow_demo03:
-  description: Demo 3. Integration with GitHub and WFM
+workflow_demo01:
+  description: Demo 1. Integration with GitHub and WFM
 
   type: direct
 
