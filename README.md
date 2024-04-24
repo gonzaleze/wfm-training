@@ -1,7 +1,7 @@
 # Demo 3. Integration with GitHub and WFM
 ### RBC Training 2024. NSP Workflow Manager
 
-This repository serves as a demonstration of integration with GitHub and Workflow Management (WFM) tools. In this repository, the DevOps team will update all the workflows done for NSP (Network Security Platform) using Mistral.
+This repository serves as a demonstration of integration with GitHub and Workflow Management (WFM) tools. In this repository, the DevOps team will update all the workflows done for NSP (Network Services Platform) using Mistral.
 
 ## About
 This repository is solely for the purpose of a dummy demo. It showcases how GitHub can be integrated with Workflow Management tools like Mistral for managing and automating tasks related to network security.
