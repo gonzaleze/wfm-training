@@ -1,0 +1,33 @@
+---
+version: '2.0'
+
+forks_examples:
+  type: direct
+
+  description: used for demo purposes
+
+  tasks:
+    start:
+      action: std.noop
+      on-success:
+        - task1
+      on-error:
+        - task2
+      pause-before: true
+      wait-before: 5
+      wait-after: 5
+
+    task1:
+      action: std.noop
+      on-complete:
+        - final_task
+      wait-after: 5
+
+    task2:
+      action: std.noop
+      on-complete:
+        - final_task
+      wait-after: 5
+
+    final_task:
+      action: std.noop
