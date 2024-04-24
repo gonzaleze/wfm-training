@@ -1,0 +1,60 @@
+version: "2.0"
+
+ADD-STATIC-ROUTES:
+  workflow_meta:
+    title: Add VPRN Static Routes
+    author: Siva Sivakumar
+    email: siva.sivakumar@nokia.com
+    version: "1.0.0"
+    deprecated: false
+    dependencies:
+      platform:
+        nspOS:
+        - "20.11"
+
+  tags:
+    - sf-service-operation
+
+  input:
+    - token_auth
+    - svc
+    - siteId
+    - staticRoutes
+
+  output:
+    psEntries: <% $.psEntries %>
+    result: success
+
+  output-on-error:
+    reason: <% $.reason %>
+    result: failed
+
+  tasks:
+    taskHandler:
+      action: std.noop
+      publish:
+        svcName: <% $.svc.name %>
+        svcMgrId: <% $.svc.externalIds.first().id.split("-")[-1] %>
+      on-success:
+        - addStaticRoute
+
+    addStaticRoute:
+      with-items: route in <% $.staticRoutes %>
+      action: nsp.https
+      input:
+        method: POST
+        url: <% locate_nsp("samo_generic", "v2") %>/v2/generic/GenericObject/configureChildInstance
+        body:
+          distinguishedName: svc-mgr:service-<% $.svcMgrId %>:<% $.siteId %>
+          childConfigInfo:
+            objectClassName: rtr.StaticRoute
+            actionBitmask:
+            - create
+            containedClassProperties:
+              destination: <% $.route.destAddress.split("/")[0] %>
+              prefixLength: <% $.route.destAddress.split("/")[1] %>
+              targetIpAddress: <% $.route.targetIp %>
+      publish:
+        psEntries: <% task().result.content.flatten() %>
+      publish-on-error:
+        reason: Bad combination of Destination IP and Mask
