@@ -1,0 +1,64 @@
+
+version: '2.0'
+
+workflow_demo03:
+  description: Demo 3. Integration with GitHub and WFM
+
+  type: direct
+
+  tags:
+    - demo3_v1.0
+
+  input:
+    - neId: 44.44.44.44
+
+  output:
+    result: <% $.result %>
+    
+  output-on-error:
+    error_string: <% $.error_string %>
+    error_stage: <% $.error_stage %>
+    
+  vars:
+    cliCommands: |
+       environment more false
+       /config private
+       /configure router bgp admin-state enable
+       commit
+       exit all
+    stop: "([\\s\\S]*)(\\^*)[\r\n]*(MINOR:)([\\s\\S]*)"
+    stage: "null"
+
+  tasks:
+
+    executeCli:
+      action: nsp.mdm_cli
+      input:
+        neId: <% $.neId %>
+        stopOn: <% $.stop %>
+        idleTimeOut: 120
+        closeSession: true
+        cmds: <% $.cliCommands.split("\n") %>
+      publish:
+        cliOutput:  <% task().result.responses[2] %>
+        stage: "executeCli"
+      publish-on-error:
+        error_string: <% task().result %>
+        error_stage: "executeCli"
+      on-success:
+        cliResult
+      on-error:
+        error_handler
+        
+    cliResult:
+      action: std.noop
+      publish:
+        result: <% $.cliOutput %>
+      on-success:
+        exit_task
+        
+    exit_task:
+      action: std.noop
+
+    error_handler:
+      action: std.fail
