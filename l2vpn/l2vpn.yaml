@@ -1,0 +1,184 @@
+version: '2.0'
+
+HuaweiUC21_infra:
+  type: direct
+  description:  EANTC
+  
+  input:
+    - mgmtIP: 10.20.0.10
+    - port: 830
+    - password: K9abXmjf.com1
+
+    - lsrId: 3.3.3.3
+    - peerLsrId: 2.2.2.2
+    - networkEntity: 10.0000.0000.0003.00
+    - interfaceA: GigabitEthernet0/7/1
+    - addressA: 30.1.1.2
+    - asNumber: 2345
+    - srLabel: 300
+
+  vars:
+    username: netconf
+    timeout: 60
+    format: raw
+    
+  tasks:
+    editConf:
+      action: netconf.rpc
+      input:
+        connectInfo:
+          host: <% $.mgmtIP %>
+          port: <% $.port %>
+          username: <% $.username %>
+          password: <% $.password %>
+          timeout: <% $.timeout %>
+          hostkey_verify: False
+        commands:
+          main: |
+              <edit-config>
+                <target>
+                  <running/>
+                </target>
+                <config>
+                  <mpls xmlns="urn:huawei:yang:huawei-mpls">
+                    <common>
+                      <global>
+                        <mpls-enable>true</mpls-enable>
+                        <lsr-id><% $.lsrId %></lsr-id>
+                        <null-lable-type>non-null</null-lable-type>
+                      </global>
+                    </common>
+                  </mpls>
+                  <network-instance xmlns="urn:huawei:yang:huawei-network-instance">
+                    <instances>
+                      <instance>
+                        <name>_public_</name>
+                        <segment-routing xmlns="urn:huawei:yang:huawei-segment-routing">
+                          <enable>true</enable>
+                        </segment-routing>
+                        <isis xmlns="urn:huawei:yang:huawei-isis">
+                          <sites>
+                            <site>
+                              <id>1</id>
+                              <cost-style>wide</cost-style>
+                              <net-entitys>
+                                <net-entity>
+                                  <value><% $.networkEntity %></value>
+                                </net-entity>
+                              </net-entitys>
+                              <circuits>
+                                <circuit>
+                                  <name>LoopBack1</name>
+                                  <afs>
+                                    <af>
+                                      <type>afipv4</type>
+                                      <prefix-sids xmlns="urn:huawei:yang:huawei-isis-sr">
+                                        <prefix-sid>
+                                          <algorithm>0</algorithm>
+                                          <type>index</type>
+                                          <label><% $.srLabel %></label>
+                                        </prefix-sid>
+                                      </prefix-sids>
+                                    </af>
+                                  </afs>
+                                </circuit>
+                                <circuit>
+                                  <name><% $.interfaceA %></name>
+                                  <afs>
+                                    <af>
+                                      <type>afipv4</type>
+                                    </af>
+                                  </afs>
+                                </circuit>
+                              </circuits>
+                              <level>level-2</level>
+                              <afs>
+                                <af>
+                                  <type>afipv4</type>
+                                  <segment-routing xmlns="urn:huawei:yang:huawei-isis-sr">
+                                    <enable>true</enable>
+                                  </segment-routing>
+                                  <traffic-eng>
+                                    <enable-level2>true</enable-level2>
+                                  </traffic-eng>
+                                </af>
+                              </afs>
+                              <srgbs xmlns="urn:huawei:yang:huawei-isis-sr">
+                                <srgb>
+                                  <lower-bound>16000</lower-bound>
+                                  <upper-bound>35000</upper-bound>
+                                </srgb>
+                              </srgbs>
+                            </site>
+                          </sites>
+                        </isis>
+                        <bgp xmlns="urn:huawei:yang:huawei-bgp">
+                          <base-process>
+                            <router-id><% $.lsrId %></router-id>
+                            <peers>
+                              <peer>
+                                <address><% $.peerLsrId %></address>
+                                <remote-as><% $.asNumber %></remote-as>
+                                <local-if-name>LoopBack1</local-if-name>
+                                <afs>
+                                  <af>
+                                    <type>evpn</type>
+                                  </af>
+                                </afs>
+                              </peer>
+                            </peers>
+                            <afs>
+                              <af>
+                                <type>evpn</type>
+                              </af>
+                            </afs>
+                          </base-process>
+                        </bgp>
+                      </instance>
+                    </instances>
+                  </network-instance>
+                  <ifm xmlns="urn:huawei:yang:huawei-ifm">
+                    <interfaces>
+                      <interface>
+                        <name>LoopBack1</name>
+                        <ipv4 xmlns="urn:huawei:yang:huawei-ip">
+                          <addresses>
+                            <address>
+                              <ip><% $.lsrId %></ip>
+                              <mask>255.255.255.255</mask>
+                              <type>main</type>
+                            </address>
+                          </addresses>
+                        </ipv4>
+                      </interface>
+                      <interface>
+                        <name><% $.interfaceA %></name>
+                        <ipv4 xmlns="urn:huawei:yang:huawei-ip">
+                          <addresses>
+                            <address>
+                              <ip><% $.addressA %></ip>
+                              <mask>255.255.255.0</mask>
+                              <type>main</type>
+                            </address>
+                          </addresses>
+                        </ipv4>
+                      </interface>
+                    </interfaces>
+                  </ifm>
+                  <evpn xmlns="urn:huawei:yang:huawei-evpn">
+                    <base-process>
+                      <source-address><% $.lsrId %></source-address>
+                      </base-process>
+                    </evpn>
+                    <bgp xmlns="urn:huawei:yang:huawei-bgp">
+                      <base-process>
+                        <enable>true</enable>
+                        <as><% $.asNumber%></as>
+                      </base-process>
+                    </bgp>
+                </config>
+              </edit-config>
+
+        format: <% $.format %>
+      publish:
+        result: <% task().result.response %>
