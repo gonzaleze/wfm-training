@@ -59,7 +59,6 @@ workflow_demo03:
         
     exit_task:
       action: std.noop
-      wait-after: 5
 
     error_handler:
       action: std.fail
