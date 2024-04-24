@@ -1,6 +1,6 @@
 version: '2.0'
 
-workflow_demo02:
+workflow_demo01:
   type: direct
 
   input:
